@@ -3,6 +3,6 @@
 namespace App\Service\Vault\Contract;
 
 interface KeyInterface {
-	public function getIdentity(): string;
-	public function open(VaultInterface $vault): void;
+	public function getFingerprint(): string;
+	public function open(VaultInterface $vault): bool;
 }

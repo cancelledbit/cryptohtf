@@ -12,10 +12,9 @@ function main () {
 }
 
 function frontend () {
-  echo "front"
-#	local args="--non-interactive --non-interactive"
-#	yarn install ${args}
-#	yarn build
+	local args="--non-interactive --non-interactive"
+	npm install
+	npm run dev
 }
 
 function backend () {

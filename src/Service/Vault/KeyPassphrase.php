@@ -10,11 +10,11 @@ class KeyPassphrase implements KeyInterface {
 	public function __construct(private readonly string $pass) {
 	}
 
-	public function getIdentity(): string {
+	public function getFingerprint(): string {
 		return md5($this->pass . self::SALT);
 	}
 
-	public function open(VaultInterface $vault): void {
-		$vault->unlock($this);
+	public function open(VaultInterface $vault): bool {
+		return $vault->unlock($this);
 	}
 }

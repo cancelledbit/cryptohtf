@@ -10,17 +10,16 @@ services:
         - "APP_ENV=dev"
         - "APP_DEBUG=true"
     container_name: cfh
-    network_mode: bridge
     restart: unless-stopped
     ports:
       - "0.0.0.0:8995:80"
     volumes:
-      - "./:/var/log/nginx"
-      - "./:/var/log/php"
+      - "./:/cfh/cfh"
+      - "./crypt:/crypt"
     environment:
       - "SYMFONY_DECRYPTION_SECRET=${SYMFONY_DECRYPTION_SECRET}"
       - "MIGRATION_DISABLED=${MIGRATION_DISABLED:-0}"
-  database:
+  cfh-db:
     image: postgres:${POSTGRES_VERSION:-15}-alpine
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-app}
@@ -31,10 +30,6 @@ services:
       - "5432:5432"
     volumes:
       - database_data:/var/lib/postgresql/data:rw
-      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
-      # - ./docker/db/data:/var/lib/postgresql/data:rw
-  ###< doctrine/doctrine-bundle ###
-
 volumes:
   ###> doctrine/doctrine-bundle ###
   database_data:

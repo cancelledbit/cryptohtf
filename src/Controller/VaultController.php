@@ -25,7 +25,7 @@ class VaultController extends AbstractController
 	#[Route('/vault', name: 'app_vault')]
     public function index(Request $req): Response
     {
-		if (false && $this->files->isUninitialized()) {
+		if (!$this->files->isInitialized()) {
 			$pass = $this->files->initVault();
 			return $this->render('vault/index.html.twig', [
 				'pass' => $pass,
@@ -40,6 +40,8 @@ class VaultController extends AbstractController
 			}
 			if ($this->files->isOpen()) {
 				return $this->redirect('/vault/manager?conf=manager');
+			} else {
+				throw new \InvalidArgumentException('Не удалось разблокировать хранилище. Неверный пароль или внутренняя ошибка');
 			}
 		} catch (\Throwable $e) {
 			$errors = [$e->getMessage()];
