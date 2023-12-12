@@ -97,10 +97,14 @@ class VaultFiles implements VaultInterface {
 		if (!$this->isMounted()) {
 			return true;
 		}
-		return $this->cryptFs->close(
+		$res = $this->cryptFs->close(
 			$this->getVault()->getCypherPoint(),
 			$this->getVault()->getMountPoint()
 		);
+        if ($res) {
+            $this->setStatus(VaultStatus::ENCRYPTED);
+        }
+        return $res;
 	}
 
 	private function createEntity(): PersonalVault {
