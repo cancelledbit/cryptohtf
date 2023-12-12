@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  cfh-app:
+    image: "cfh-base:latest"
+    build:
+      dockerfile: Dockerfile
+      context: .
+      args:
+        - "APP_ENV=dev"
+        - "APP_DEBUG=true"
+    container_name: cfh
+    network_mode: bridge
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:8995:80"
+    volumes:
+      - "./:/var/log/nginx"
+      - "./:/var/log/php"
+    environment:
+      - "SYMFONY_DECRYPTION_SECRET=${SYMFONY_DECRYPTION_SECRET}"
+      - "MIGRATION_DISABLED=${MIGRATION_DISABLED:-0}"
+  database:
+    image: postgres:${POSTGRES_VERSION:-15}-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      # You should definitely change the password in production
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-S0perPass}
+      POSTGRES_USER: ${POSTGRES_USER:-root}
+    ports:
+      - "5432:5432"
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+      # - ./docker/db/data:/var/lib/postgresql/data:rw
+  ###< doctrine/doctrine-bundle ###
+
+volumes:
+  ###> doctrine/doctrine-bundle ###
+  database_data:
+###< doctrine/doctrine-bundle ###

@@ -1,0 +1,54 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -q
+
+RUN apt-get install -q -y locales
+
+RUN locale-gen --no-purge en_US.UTF-8 ru_RU.UTF-8 \
+	&& update-locale LANG=en_US.UTF-8 \
+	&& echo locales locales/locales_to_be_generated multiselect en_US.UTF-8 ru_RU.UTF-8 UTF-8 | debconf-set-selections \
+	&& echo locales locales/default_environment_locale select en_US.UTF-8 | debconf-set-selections \
+	&& dpkg-reconfigure locales
+
+# BASE UTILS
+RUN apt-get install -y --no-install-recommends \
+	curl gnupg2 ca-certificates gpg-agent apt-utils software-properties-common make git unzip vim
+
+# NGINX
+RUN . /etc/lsb-release \
+	&& echo "deb http://nginx.org/packages/ubuntu $DISTRIB_CODENAME nginx" | tee /etc/apt/sources.list.d/nginx.list \
+	&& curl -fsSL https://nginx.org/keys/nginx_signing.key | apt-key add - \
+	&& apt-get install -y --no-install-recommends nginx
+RUN mkdir -p /logs/nginx \
+	&& chown -R www-data:www-data /logs/nginx \
+	&& chmod -R 755 /logs/nginx \
+	&& rm -fr /etc/nginx
+ADD docker/configs/nginx /etc/nginx
+
+# PHP
+RUN LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php \
+	&& apt-get install -y --no-install-recommends \
+		php8.2-cli php8.2-fpm php8.2-dev php8.2-xml php8.2-mbstring php8.2-curl php8.2-zip php-pear \
+		php8.2-ctype php8.2-iconv php8.2-tokenizer php8.2-dom php8.2-simplexml php8.2-gd php8.2-apcu php8.2-redis \
+	&& pecl channel-update pecl.php.net && pecl install mongodb
+RUN rm -rf /etc/php/* \
+	&& mkdir -p /logs/php \
+	&& chown -R www-data:www-data /logs/php \
+	&& chmod -R a+rwX /logs/php
+ADD docker/configs/php8 /etc/php/8.2
+RUN /usr/sbin/php-fpm8.2 -t --fpm-config /etc/php/8.2/fpm/php-fpm.conf
+
+# NODEJS
+RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - \
+	&& apt-get install -y --no-install-recommends nodejs \
+	&& npm install -g -f yarn
+
+# COMPOSER
+RUN (php -r "readfile('https://getcomposer.org/installer');" | php -- --install-dir=/usr/local/bin --filename=composer)
+
+# CLEAR
+RUN apt-get -y autoremove \
+	&& apt-get clean \
+	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
