@@ -40,7 +40,7 @@ class VaultController extends AbstractController
 			}
 			if ($this->files->isOpen()) {
 				return $this->redirect('/vault/manager?conf=manager');
-			} else {
+			} elseif ($passphrase) {
 				throw new \InvalidArgumentException('Не удалось разблокировать хранилище. Неверный пароль или внутренняя ошибка');
 			}
 		} catch (\Throwable $e) {

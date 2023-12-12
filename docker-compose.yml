@@ -2,7 +2,6 @@ version: '3'
 
 services:
   cfh-app:
-    image: "cfh-base:latest"
     build:
       dockerfile: Dockerfile
       context: .
@@ -16,6 +15,9 @@ services:
     volumes:
       - "./:/cfh/cfh"
       - "./crypt:/crypt"
+    privileged: true
+    devices:
+      - "/dev/fuse:/dev/fuse"
     environment:
       - "SYMFONY_DECRYPTION_SECRET=${SYMFONY_DECRYPTION_SECRET}"
       - "MIGRATION_DISABLED=${MIGRATION_DISABLED:-0}"

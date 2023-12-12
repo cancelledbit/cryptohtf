@@ -13,7 +13,7 @@ class GoCryptFs implements CryptFsInterface {
 
 	public function createStorage(string $pass, string $cryptDir): bool {
 		$shellCmd = Process::fromShellCommandline("mkdir {$this->basePath}/{$cryptDir} && echo \"{$pass}\" | gocryptfs -init -q -- {$this->basePath}/{$cryptDir}");
-		$shellCmd->run();
+        $shellCmd->run();
 		if ($shellCmd->getExitCode() !== 0) {
 			$this->logger->error($shellCmd->getErrorOutput());
 			return false;
@@ -24,7 +24,6 @@ class GoCryptFs implements CryptFsInterface {
 	public function decrypt(string $pass, string $cryptDir): string {
 		$mountDir = md5(random_bytes(100));
 		$shellCmd = Process::fromShellCommandline("mkdir {$this->basePath}/{$mountDir} && echo \"{$pass}\" | gocryptfs {$this->basePath}/{$cryptDir} {$this->basePath}/{$mountDir}");
-		dd($shellCmd);
 		$shellCmd->run();
 		if ($shellCmd->getExitCode() !== 0) {
 			$shellCmd = Process::fromShellCommandline("rm -rf {$this->basePath}/{$mountDir}");

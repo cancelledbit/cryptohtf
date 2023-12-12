@@ -23,6 +23,7 @@ class VaultFiles implements VaultInterface {
 		Security                       $security,
 		private EntityManagerInterface $em,
 		private CryptFsInterface       $cryptFs,
+        private string $basePath,
 		private int                    $durationOpen = 60
 	) {
 		$this->user = $this->em->getRepository(User::class)->findOneBy(['email' => $security->getUser()?->getUserIdentifier()]);
@@ -75,7 +76,7 @@ class VaultFiles implements VaultInterface {
 
 	public function getMount(): string {
 		return match ($this->getStatus()) {
-			VaultStatus::OPEN => $this->getVault()->getMountPoint(),
+			VaultStatus::OPEN => $this->basePath . '/' .$this->getVault()->getMountPoint(),
 			VaultStatus::ENCRYPTED, VaultStatus::NONE => throw new \InvalidArgumentException('Cant mount encrypted vault'),
 		};
 	}
@@ -124,7 +125,7 @@ class VaultFiles implements VaultInterface {
 	}
 
 	private function isMounted(): bool {
-		return $this->getVault()->getMountPoint() !== null;
+		return (bool)$this->getVault()->getMountPoint();
 	}
 
 	public function isExpired(): bool {

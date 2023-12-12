@@ -28,4 +28,7 @@ services:
             - '../src/Kernel.php'
     App\Service\Vault\GoCryptFs:
         arguments:
-           $basePath : '%env(VAULT_DIR)%'
+            $basePath : '%env(VAULT_DIR)%'
+    App\Service\Vault\VaultFiles:
+        arguments:
+            $basePath: '%env(VAULT_DIR)%'

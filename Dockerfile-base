@@ -32,7 +32,7 @@ RUN LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php \
 	&& apt-get install -y --no-install-recommends \
 		php8.2-cli php8.2-fpm php8.2-dev php8.2-xml php8.2-mbstring php8.2-curl php8.2-zip php-pear \
 		php8.2-ctype php8.2-iconv php8.2-tokenizer php8.2-dom php8.2-simplexml php8.2-gd php8.2-apcu php8.2-redis \
-	&& pecl channel-update pecl.php.net && pecl install mongodb
+	&& pecl channel-update pecl.php.net && pecl install xdebug
 RUN rm -rf /etc/php/* \
 	&& mkdir -p /logs/php \
 	&& chown -R www-data:www-data /logs/php \
