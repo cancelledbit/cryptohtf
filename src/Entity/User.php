@@ -20,10 +20,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $email = null;
 
 	#[ORM\Column(length: 180)]
-	private ?string $firstName = null;
+         	private ?string $firstName = null;
 
 	#[ORM\Column(length: 180)]
-	private ?string $lastName = null;
+         	private ?string $lastName = null;
 
     #[ORM\Column]
     private array $roles = [];
@@ -33,6 +33,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     private ?string $password = null;
+
+    #[ORM\OneToOne(mappedBy: 'owner', cascade: ['persist', 'remove'])]
+    private ?PersonalVault $personalVault = null;
 
     public function getId(): ?int
     {
@@ -51,13 +54,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
 	public function setName(string $firstName, string $lastName): void {
-		$this->firstName = $firstName;
-		$this->lastName = $lastName;
-	}
+         		$this->firstName = $firstName;
+         		$this->lastName = $lastName;
+         	}
 
 	public function getName(): string {
-		return implode(' ', [$this->firstName, $this->lastName]);
-	}
+         		return implode(' ', [$this->firstName, $this->lastName]);
+         	}
 
     /**
      * A visual identifier that represents this user.
@@ -110,5 +113,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    public function getPersonalVault(): ?PersonalVault
+    {
+        return $this->personalVault;
+    }
+
+    public function setPersonalVault(PersonalVault $personalVault): static
+    {
+        // set the owning side of the relation if necessary
+        if ($personalVault->getOwner() !== $this) {
+            $personalVault->setOwner($this);
+        }
+
+        $this->personalVault = $personalVault;
+
+        return $this;
     }
 }

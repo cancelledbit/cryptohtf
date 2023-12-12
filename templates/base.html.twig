@@ -15,10 +15,15 @@
     </head>
     <body>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <a class="mx-2 navbar-brand" href="/">Vault</a>
-            {% if is_granted('IS_AUTHENTICATED_FULLY') %}
-                <a class="mx-2 navbar-brand" href="/logout">Выйти</a>
-            {% endif %}
+            <div class="container-fluid">
+                <a class="mx-2 navbar-brand" href="/">Vault</a>
+                {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                    <div class="justify-content-end">
+                        <a class="mx-2 btn btn-info" href="/logout">Выйти</a>
+                    </div>
+                {% endif %}
+            </div>
+
         </nav>
         <div class="container">
             {% block body %}{% endblock %}

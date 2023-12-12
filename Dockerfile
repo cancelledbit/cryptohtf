@@ -11,7 +11,7 @@ ARG APP_ENV=dev
 ENV APP_ENV=${APP_ENV}
 ARG APP_DEBUG=1
 ENV APP_DEBUG=${APP_DEBUG}
-
+RUN apt install gocryptfs
 RUN docker/build.sh
 
 CMD ["/cfh/cfh/docker/web-command.sh"]
