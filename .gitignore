@@ -1,5 +1,6 @@
 
 ###> symfony/framework-bundle ###
+/.idea
 /.env.local
 /.env.local.php
 /.env.*.local
@@ -13,7 +14,7 @@
 /phpunit.xml
 .phpunit.result.cache
 ###< phpunit/phpunit ###
-
+/crypt
 ###> symfony/phpunit-bridge ###
 .phpunit.result.cache
 /phpunit.xml
