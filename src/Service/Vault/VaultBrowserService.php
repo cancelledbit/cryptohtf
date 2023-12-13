@@ -5,7 +5,7 @@ namespace App\Service\Vault;
 use Artgris\Bundle\FileManagerBundle\Service\CustomConfServiceInterface;
 
 class VaultBrowserService implements CustomConfServiceInterface {
-	public function __construct(private readonly VaultFiles $files) {
+	public function __construct(private readonly VaultHandler $files) {
 		if (!$this->files->isOpen()) {
 			throw new \UnexpectedValueException('Vault is not open yet');
 		}

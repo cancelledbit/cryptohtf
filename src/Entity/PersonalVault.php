@@ -14,7 +14,7 @@ class PersonalVault
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\OneToOne(inversedBy: 'personalVault', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'personalVault', cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $owner = null;
 

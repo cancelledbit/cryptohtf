@@ -29,6 +29,7 @@ services:
     App\Service\Vault\GoCryptFs:
         arguments:
             $basePath : '%env(VAULT_DIR)%'
-    App\Service\Vault\VaultFiles:
+    App\Service\Vault\VaultHandler:
         arguments:
             $basePath: '%env(VAULT_DIR)%'
+            $durationOpen: '%env(VAULT_OPEN_SEC)%'

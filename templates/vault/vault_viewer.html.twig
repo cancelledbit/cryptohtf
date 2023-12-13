@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+
+{% block body %}
+    <div class="row align-content-center text-center">
+        <div class="fs-3">Хранилище закроется через <span id="time">00:00</span> минут!</div>
+        <div class="col">
+            <iframe style="display: none; width:100%; height:600px; " class="js-iframe" data-src="/vault/manager?conf=manager"></iframe>
+        </div>
+        <button class="my-2 btn btn-info js-open">Открыть файловый менеджер</button>
+        <button class="my-2 btn btn-danger js-lock">Заблокировать хранилище</button>
+    </div>
+    <script lang="js">
+        (function () {
+            const iframe = $('.js-iframe');
+            const button = $('.js-open');
+            const buttonLock = $('.js-lock');
+
+            function closeVault() {
+                const r = $.ajax({
+                    url: '{{ path('app_vault_lock') }}',
+                    method: 'POST',
+                });
+                r.done(() => window.location.reload());
+                r.fail(() => {
+                    alert("Произошла ошибка при закрытии хранилища, обратитесь к администратору")
+                })
+            }
+
+            function startTimer(duration, display) {
+                var timer = duration, minutes, seconds;
+                setInterval(function () {
+                    minutes = parseInt(timer / 60, 10);
+                    seconds = parseInt(timer % 60, 10);
+
+                    minutes = minutes < 10 ? "0" + minutes : minutes;
+                    seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                    display.textContent = minutes + ":" + seconds;
+
+                    if (--timer < 0) {
+                       closeVault()
+                    }
+                }, 1000);
+            }
+
+            window.onload = function () {
+                var fiveMinutes = {{ time_left }}, display = document.querySelector('#time');
+                startTimer(fiveMinutes, display);
+            };
+
+            button.on('click', (e) => {
+               e.preventDefault();
+               iframe.attr('src', iframe.data('src'))
+               iframe.toggle();
+               button.hide();
+            })
+            buttonLock.on('click', (e) => {
+                e.preventDefault();
+                closeVault();
+            })
+        })()
+    </script>
+{% endblock %}

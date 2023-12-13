@@ -20,10 +20,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $email = null;
 
 	#[ORM\Column(length: 180)]
-         	private ?string $firstName = null;
+    private ?string $firstName = null;
 
 	#[ORM\Column(length: 180)]
-         	private ?string $lastName = null;
+    private ?string $lastName = null;
 
     #[ORM\Column]
     private array $roles = [];
@@ -54,13 +54,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
 	public function setName(string $firstName, string $lastName): void {
-         		$this->firstName = $firstName;
-         		$this->lastName = $lastName;
-         	}
+        $this->firstName = $firstName;
+        $this->lastName = $lastName;
+    }
 
 	public function getName(): string {
-         		return implode(' ', [$this->firstName, $this->lastName]);
-         	}
+        return implode(' ', [$this->firstName, $this->lastName]);
+    }
 
     /**
      * A visual identifier that represents this user.

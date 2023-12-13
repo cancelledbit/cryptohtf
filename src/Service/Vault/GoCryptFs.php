@@ -21,7 +21,7 @@ class GoCryptFs implements CryptFsInterface {
 		return true;
 	}
 
-	public function decrypt(string $pass, string $cryptDir): string {
+	public function open(string $pass, string $cryptDir): string {
 		$mountDir = md5(random_bytes(100));
 		$shellCmd = Process::fromShellCommandline("mkdir {$this->basePath}/{$mountDir} && echo \"{$pass}\" | gocryptfs {$this->basePath}/{$cryptDir} {$this->basePath}/{$mountDir}");
 		$shellCmd->run();
@@ -43,4 +43,32 @@ class GoCryptFs implements CryptFsInterface {
 		}
 		return true;
 	}
+
+    public function changeSecret(string $oldPass, string $newPass, string $cryptDir): string {
+        $shellCmd = Process::fromShellCommandline("echo \"{$oldPass}\n{$newPass}\" | gocryptfs -passwd -q -- {$this->basePath}/{$cryptDir}");
+        $shellCmd->run();
+        if ($shellCmd->getExitCode() !== 0) {
+            $this->logger->error($shellCmd->getErrorOutput());
+            return '';
+        }
+        return $newPass;
+    }
+
+    public function remove(string $cryptDir): bool {
+        if (
+            !$cryptDir
+            || str_contains($cryptDir, '..')
+            || str_contains($cryptDir, './')
+            || str_contains($cryptDir, '.')
+        ) {
+            throw new \UnexpectedValueException('Trying to remove fs');
+        }
+        $shellCmd = Process::fromShellCommandline("cd {$this->basePath} && rm -rf $cryptDir");
+        $shellCmd->run();
+        if ($shellCmd->getExitCode() !== 0) {
+            $this->logger->error($shellCmd->getErrorOutput());
+            return false;
+        }
+        return true;
+    }
 }

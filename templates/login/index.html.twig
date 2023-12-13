@@ -3,21 +3,21 @@
 
 
 {% block body %}
-    <div class="row justify-content-center">
-        <div class="col-md-auto my-2">
+    <div class="row h-100 justify-content-center align-items-center">
+        <div class="col-md-auto p-3 rounded-3 bg-secondary text-light">
             {% if error %}
                 <div>{{ error.messageKey|trans(error.messageData, 'security') }}</div>
             {% endif %}
             <form action="{{ path('app_initial') }}" method="post">
-                <div class="form-group">
+                <div class="form-group my-2">
                     <label for="exampleInputEmail1">Email адрес</label>
                     <input type="email" class="form-control" name="_username" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Введите email">
                 </div>
-                <div class="form-group">
+                <div class="form-group my-2">
                     <label for="exampleInputPassword1">Пароль</label>
                     <input type="password" class="form-control" name="_password" id="exampleInputPassword1" placeholder="Пароль">
                 </div>
-                <button type="submit" class="btn btn-primary my-2">Войти</button>
+                <button type="submit" class="btn btn-primary my-2 w-100">Войти</button>
             </form>
         </div>
     </div>

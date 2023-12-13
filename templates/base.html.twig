@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <title>{% block title %}Welcome!{% endblock %}</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text></svg>">
         {# Run `composer require symfony/webpack-encore-bundle` to start using Symfony UX #}
         {% block stylesheets %}
@@ -19,13 +20,17 @@
                 <a class="mx-2 navbar-brand" href="/">Vault</a>
                 {% if is_granted('IS_AUTHENTICATED_FULLY') %}
                     <div class="justify-content-end">
-                        <a class="mx-2 btn btn-info" href="/logout">Выйти</a>
+                        <b class="text-light">{{ app.user.name }}</b>
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <a class="mx-2 btn btn-danger" href="/admin">Админка</a>
+                        {% endif %}
+                        <a class="mx-2 btn btn-primary" href="/logout">Выйти</a>
                     </div>
                 {% endif %}
             </div>
 
         </nav>
-        <div class="container">
+        <div class="container" style="height: 90vh;">
             {% block body %}{% endblock %}
         </div>
     </body>
