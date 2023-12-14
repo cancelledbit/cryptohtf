@@ -7,10 +7,16 @@ use App\Entity\User;
 use App\Service\Vault\Contract\CryptFsInterface;
 use App\Service\Vault\Contract\KeyInterface;
 use App\Service\Vault\Contract\VaultInterface;
+use App\Service\Vault\Event\Subscriber\NotifierSubscriber;
+use App\Service\Vault\Event\VaultCreatedEvent;
+use App\Service\Vault\Event\VaultLockedEvent;
+use App\Service\Vault\Event\VaultRemovedEvent;
+use App\Service\Vault\Event\VaultUnlockedEvent;
 use App\Service\Vault\Exception\NoVaultException;
 use App\Service\Vault\Exception\VaultExistsException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Process\Process;
 
 
@@ -23,6 +29,7 @@ class VaultHandler implements VaultInterface {
 		private Security $security,
 		private EntityManagerInterface $em,
 		private CryptFsInterface $cryptFs,
+        private EventDispatcherInterface $dispatcher,
         private string $basePath,
 		private int $durationOpen = 60
 	) {
@@ -36,7 +43,7 @@ class VaultHandler implements VaultInterface {
 
     public function setUser(?User $user): self {
         if (!$user) {
-            $this->setStatus(VaultStatus::EMPTY);
+            $this->setStatus(VaultStatus::NON_EXISTENT);
             return $this;
         }
         $this->user = $user;
@@ -76,7 +83,7 @@ class VaultHandler implements VaultInterface {
 
 	public function isInitialized(): bool {
 		return match ($this->getStatus()) {
-            VaultStatus::EMPTY, VaultStatus::NONE => false,
+            VaultStatus::NON_EXISTENT, VaultStatus::NONE => false,
             default => true,
         };
 	}
@@ -102,13 +109,14 @@ class VaultHandler implements VaultInterface {
 		}
 		$this->em->persist($vault);
 		$this->em->flush();
+        $this->dispatcher->dispatch(new VaultCreatedEvent($vault, $pass), VaultCreatedEvent::getName());
 		return $pass;
 	}
 
 	public function getMount(): string {
 		return match ($this->getStatus()) {
 			VaultStatus::OPEN => $this->basePath . '/' .$this->getVault()->getMountPoint(),
-			VaultStatus::ENCRYPTED, VaultStatus::NONE, VaultStatus::EMPTY => throw new \InvalidArgumentException('Cant mount encrypted vault'),
+			VaultStatus::ENCRYPTED, VaultStatus::NONE, VaultStatus::NON_EXISTENT => throw new \InvalidArgumentException('Cant mount encrypted vault'),
 		};
 	}
 
@@ -120,6 +128,7 @@ class VaultHandler implements VaultInterface {
             $this->getVault()->setLastMountTs(new \DateTime());
 			$this->em->persist($this->getVault());
 			$this->em->flush();
+            $this->dispatcher->dispatch(new VaultUnlockedEvent($this->getVault()), VaultUnlockedEvent::getName());
 			return true;
 		}
 		return false;
@@ -139,6 +148,7 @@ class VaultHandler implements VaultInterface {
             $this->getVault()->setMountPoint(null);
             $this->em->persist($this->getVault());
             $this->em->flush();
+            $this->dispatcher->dispatch(new VaultLockedEvent($this->vault), VaultLockedEvent::getName());
         }
         return $res;
 	}
@@ -157,6 +167,7 @@ class VaultHandler implements VaultInterface {
             }
             $this->em->remove($this->getVault());
             $this->em->flush();
+            $this->dispatcher->dispatch(new VaultRemovedEvent($this->getVault()), VaultRemovedEvent::getName());
         }
         return false;
     }

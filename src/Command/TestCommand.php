@@ -2,6 +2,10 @@
 
 namespace App\Command;
 
+use App\Service\Vault\Event\VaultCreatedEvent;
+use App\Service\Vault\Event\VaultLockedEvent;
+use App\Service\Vault\Event\VaultRemovedEvent;
+use App\Service\Vault\Event\VaultUnlockedEvent;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -29,13 +33,16 @@ class TestCommand extends Command
             ->addOption('option1', null, InputOption::VALUE_NONE, 'Option description')
         ;
     }
-
+    private const RECIPIENT_MAP = [
+        VaultCreatedEvent::class => ['409842850',],
+        VaultRemovedEvent::class => ['409842850',],
+        VaultLockedEvent::class => ['409842850',],
+        VaultUnlockedEvent::class => ['409842850',],
+    ];
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-       	$process = Process::fromShellCommandline('ls -la');
-	    $process->run();
-		$io->note($process->getOutput());
+		echo json_encode(self::RECIPIENT_MAP);
         return Command::SUCCESS;
     }
 }

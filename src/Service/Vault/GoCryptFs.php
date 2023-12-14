@@ -26,9 +26,9 @@ class GoCryptFs implements CryptFsInterface {
 		$shellCmd = Process::fromShellCommandline("mkdir {$this->basePath}/{$mountDir} && echo \"{$pass}\" | gocryptfs {$this->basePath}/{$cryptDir} {$this->basePath}/{$mountDir}");
 		$shellCmd->run();
 		if ($shellCmd->getExitCode() !== 0) {
+            $this->logger->error($shellCmd->getErrorOutput());
 			$shellCmd = Process::fromShellCommandline("rm -rf {$this->basePath}/{$mountDir}");
 			$shellCmd->run();
-			$this->logger->error($shellCmd->getErrorOutput());
 			return '';
 		}
 		return $mountDir;

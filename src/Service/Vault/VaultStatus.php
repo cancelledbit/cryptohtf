@@ -6,5 +6,5 @@ enum VaultStatus {
 	case OPEN;
 	case ENCRYPTED;
 	case NONE;
-    case EMPTY;
+    case NON_EXISTENT;
 }

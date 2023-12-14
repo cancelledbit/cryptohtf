@@ -29,7 +29,23 @@ services:
     App\Service\Vault\GoCryptFs:
         arguments:
             $basePath : '%env(VAULT_DIR)%'
+    App\Service\Vault\Event\Subscriber\NotifierSubscriber:
+        arguments:
+            $recipients: '%env(json:NOTIFY_VAULT_RECIPIENTS)%'
     App\Service\Vault\VaultHandler:
         arguments:
             $basePath: '%env(VAULT_DIR)%'
             $durationOpen: '%env(VAULT_OPEN_SEC)%'
+    ##LOG##
+    monolog.formatter.session_request:
+        class: Monolog\Formatter\LineFormatter
+        arguments:
+            - "[%%datetime%%] [%%extra.token%%] %%channel%%.%%level_name%%: %%message%% %%context%% %%extra%%\n"
+    App\Log\CommonProcessor:
+        tags:
+            - { name: monolog.processor }
+    Monolog\Handler\TelegramBotHandler:
+        arguments:
+            - '%env(TELEGRAM_BOT_KEY)%'
+            - '%env(TELEGRAM_CHANNEL)%'
+            - 400
