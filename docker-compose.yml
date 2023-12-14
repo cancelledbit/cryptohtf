@@ -13,7 +13,6 @@ services:
     ports:
       - "0.0.0.0:8995:80"
     volumes:
-      - "./:/cfh/cfh"
       - "./crypt:/crypt"
     privileged: true
     devices:
