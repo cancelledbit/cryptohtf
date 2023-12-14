@@ -20,6 +20,7 @@ services:
     environment:
       - "SYMFONY_DECRYPTION_SECRET=${SYMFONY_DECRYPTION_SECRET}"
       - "MIGRATION_DISABLED=${MIGRATION_DISABLED:-0}"
+      - "COMPOSER_ALLOW_SUPERUSER=1"
   cfh-db:
     image: postgres:${POSTGRES_VERSION:-15}-alpine
     environment:
