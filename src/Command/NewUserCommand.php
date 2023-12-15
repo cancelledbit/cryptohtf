@@ -55,7 +55,7 @@ class NewUserCommand extends Command
 		$user->setEmail($email);
 		$user->setName($firstName, $lastName);
 		$user->setRoles([$role]);
-		$pwd = substr(md5(random_bytes(8)), 10);
+		$pwd = substr(md5(random_bytes(8)), 7);
 		$pwdHash = $this->hasher->hashPassword($user, $pwd);
 		$this->repository->upgradePassword($user, $pwdHash);
         $io->success("Created {$email} {$pwd}");

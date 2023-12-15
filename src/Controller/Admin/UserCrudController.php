@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\User;
+use App\Service\Vault\Exception\NoVaultException;
 use App\Service\Vault\VaultHandler;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -84,8 +85,13 @@ class UserCrudController extends AbstractCrudController
         if (!$userToRemove instanceof User) {
             throw new \UnexpectedValueException('Unexpected entity type');
         }
-        $this->vault->setUser($userToRemove);
-        $this->vault->remove();
+		try {
+			$this->vault->setUser($userToRemove);
+			$this->vault->remove();
+		} catch (NoVaultException) {
+			
+		}
+
         $this->em->remove($userToRemove);
         $this->em->flush();
         $this->stack->getSession()->getFlashBag()->add('success', "{$userToRemove->getName()} удален");
