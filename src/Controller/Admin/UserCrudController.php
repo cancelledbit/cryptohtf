@@ -74,8 +74,12 @@ class UserCrudController extends AbstractCrudController
         if (!$userToRemoveVault instanceof User) {
             throw new \UnexpectedValueException('Unexpected entity type');
         }
-        $this->vault->setUser($userToRemoveVault);
-        $this->vault->remove();
+		try {
+			$this->vault->setUser($userToRemoveVault);
+			$this->vault->remove();
+		} catch (NoVaultException) {
+
+		}
         $this->stack->getSession()->getFlashBag()->add('success', "{$userToRemoveVault->getName()} хранилище очищено");
         return $this->redirect('/admin');
     }
@@ -89,7 +93,7 @@ class UserCrudController extends AbstractCrudController
 			$this->vault->setUser($userToRemove);
 			$this->vault->remove();
 		} catch (NoVaultException) {
-			
+
 		}
 
         $this->em->remove($userToRemove);

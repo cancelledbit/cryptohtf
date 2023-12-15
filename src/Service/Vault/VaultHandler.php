@@ -154,7 +154,10 @@ class VaultHandler implements VaultInterface {
         return $res;
 	}
 
-    public function remove(): bool {
+	/**
+	 * @throws NoVaultException
+	 */
+	public function remove(): bool {
         if (!$this->security->isGranted('ROLE_ADMIN')) {
             throw new \UnexpectedValueException('Only admin can truncate folder');
         }
