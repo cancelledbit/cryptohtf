@@ -31,6 +31,7 @@ class VaultHandler implements VaultInterface {
 		private CryptFsInterface $cryptFs,
         private EventDispatcherInterface $dispatcher,
         private string $basePath,
+		private int $keyLength,
 		private int $durationOpen = 60
 	) {
         $this->setUser(
@@ -100,7 +101,7 @@ class VaultHandler implements VaultInterface {
 			throw new VaultExistsException("Vault for user {$this->user->getId()} already exists");
 		}
 		$rnd = random_bytes(255);
-		$pass = sha1($rnd);
+		$pass = substr(sha1($rnd), 0, $this->keyLength);
 		$key = new KeyPassphrase($pass);
 		$vault = $this->createEntity();
 		$res = $this->cryptFs->createStorage($key->getFingerprint(), $vault->getCypherPoint());

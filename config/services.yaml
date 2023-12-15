@@ -36,6 +36,7 @@ services:
         arguments:
             $basePath: '%env(VAULT_DIR)%'
             $durationOpen: '%env(VAULT_OPEN_SEC)%'
+            $keyLength: 6
     ##LOG##
     monolog.formatter.session_request:
         class: Monolog\Formatter\LineFormatter
