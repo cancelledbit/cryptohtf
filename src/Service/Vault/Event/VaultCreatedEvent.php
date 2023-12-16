@@ -11,7 +11,7 @@ class VaultCreatedEvent extends VaultEvent {
         parent::__construct($vault);
     }
 
-    public function getPass() {
+    public function getPass(): string {
         return $this->pass;
     }
 

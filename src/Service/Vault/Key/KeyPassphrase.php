@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Service\Vault;
+namespace App\Service\Vault\Key;
 
-use App\Service\Vault\Contract\KeyInterface;
 use App\Service\Vault\Contract\VaultInterface;
 
 class KeyPassphrase implements KeyInterface {

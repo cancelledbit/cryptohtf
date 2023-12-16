@@ -4,7 +4,7 @@ namespace App\Command;
 
 use App\Entity\PersonalVault;
 use App\Entity\User;
-use App\Service\Vault\VaultHandler;
+use App\Service\Vault\VaultFactory;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -19,7 +19,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class CloseMountsCommand extends Command
 {
-    public function __construct(private EntityManagerInterface $em, private VaultHandler $handler)
+    public function __construct(private EntityManagerInterface $em, private VaultFactory $handler)
     {
         parent::__construct();
     }
@@ -41,13 +41,12 @@ class CloseMountsCommand extends Command
         $users= $this->em->getRepository(PersonalVault::class)->matching($criteria)->map(static fn(PersonalVault $vault): ?User => $vault->getOwner());
         $users->filter(static fn(?User $u): bool => $u !== null);
         foreach ($users as $user) {
-            $this->handler->setUser($user);
-            if ($this->handler->isExpired()) {
-                $this->handler->lock();
+            $vault = $this->handler->getByUser($user);
+            if ($vault->isExpired()) {
+                $vault->lock();
                 $io->caution("Lock {$user->getName()}");
             }
         }
-        $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
 
         return Command::SUCCESS;
     }

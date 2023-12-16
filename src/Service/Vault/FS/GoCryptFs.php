@@ -1,11 +1,9 @@
 <?php
 
-namespace App\Service\Vault;
+namespace App\Service\Vault\FS;
 
-use App\Service\Vault\Contract\CryptFsInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Process\Process;
-use function Symfony\Component\Translation\t;
 
 class GoCryptFs implements CryptFsInterface {
 	public function __construct(private string $basePath, private LoggerInterface $logger) {
