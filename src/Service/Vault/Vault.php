@@ -33,7 +33,7 @@ final class Vault implements VaultInterface {
         $this->updateStatus();
     }
 
-    private function updateStatus() {
+    private function updateStatus(): void {
         try {
             $this->setStatus($this->isMounted() ? VaultStatus::OPEN : VaultStatus::ENCRYPTED);
         } catch (NoVaultException) {
@@ -51,7 +51,7 @@ final class Vault implements VaultInterface {
     }
 
 
-    public function isOpen() {
+    public function isOpen(): bool {
         return $this->getStatus() === VaultStatus::OPEN;
     }
 
@@ -111,7 +111,7 @@ final class Vault implements VaultInterface {
         return $res;
     }
 
-    public function init() {
+    public function init(): string {
         if ($this->getStatus() !== VaultStatus::NONE) {
             throw new VaultExistsException("Vault for user {$this->user->getId()} already exists");
         }
@@ -130,7 +130,7 @@ final class Vault implements VaultInterface {
         return $pass;
     }
 
-    public function remove() {
+    public function remove(): bool {
         if (!$this->security->isGranted('ROLE_ADMIN')) {
             throw new \UnexpectedValueException('Only admin can truncate folder');
         }
@@ -149,14 +149,14 @@ final class Vault implements VaultInterface {
         return false;
     }
 
-    public function getPlainFolder() {
+    public function getPlainFolder(): string {
         return match ($this->getStatus()) {
             VaultStatus::OPEN => $this->basePath . '/' .$this->getVault()->getMountPoint(),
             VaultStatus::ENCRYPTED, VaultStatus::NONE, VaultStatus::NON_EXISTENT => throw new \InvalidArgumentException('Cant mount encrypted vault'),
         };
     }
 
-    public function getEncryptedFolder() {
+    public function getEncryptedFolder(): string {
        return $this->getVault()->getCypherPoint();
     }
 
