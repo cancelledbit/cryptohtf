@@ -18,7 +18,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 final class Vault implements VaultInterface {
-    private ?PersonalVault $vault;
+    private ?PersonalVault $personalVault;
     private VaultStatus $status;
     public function __construct(
         private CryptFsInterface $cryptFs,
@@ -29,8 +29,36 @@ final class Vault implements VaultInterface {
         private int $keyLength,
         private int $durationOpen = 60
     ) {
-        $this->vault = $this->user->getPersonalVault();
+        $this->personalVault = $this->user->getPersonalVault();
         $this->updateStatus();
+    }
+
+    public function getSecondsOpenLeft(): int {
+        $mountTime = $this->getPersonalVault()->getLastMountTs();
+        if (!$mountTime) {
+            return 0;
+        }
+        $timeOpen = $mountTime->getTimestamp();
+        return $timeOpen + $this->durationOpen - time();
+    }
+
+    public function isInitialized(): bool {
+        return match ($this->getStatus()) {
+            VaultStatus::NON_EXISTENT, VaultStatus::NONE => false,
+            default => true,
+        };
+    }
+
+    public function isOpen(): bool {
+        return $this->getStatus() === VaultStatus::OPEN;
+    }
+
+    public function isExpired(): bool {
+        $mountTime = $this->getPersonalVault()->getLastMountTs();
+        if (!$mountTime) {
+            return true;
+        }
+        return $mountTime->getTimestamp() < time() - $this->durationOpen;
     }
 
     private function updateStatus(): void {
@@ -41,28 +69,6 @@ final class Vault implements VaultInterface {
         }
     }
 
-    public function getSecondsOpenLeft(): int {
-        $mountTime = $this->getVault()->getLastMountTs();
-        if (!$mountTime) {
-            return 0;
-        }
-        $timeOpen = $mountTime->getTimestamp();
-        return $timeOpen + $this->durationOpen - time();
-    }
-
-
-    public function isOpen(): bool {
-        return $this->getStatus() === VaultStatus::OPEN;
-    }
-
-    public function isExpired(): bool {
-        $mountTime = $this->getVault()->getLastMountTs();
-        if (!$mountTime) {
-            return true;
-        }
-        return $mountTime->getTimestamp() < time() - $this->durationOpen;
-    }
-
     private function getStatus(): VaultStatus {
         return $this->status;
     }
@@ -71,22 +77,15 @@ final class Vault implements VaultInterface {
         $this->status = $status;
     }
 
-    public function isInitialized(): bool {
-        return match ($this->getStatus()) {
-            VaultStatus::NON_EXISTENT, VaultStatus::NONE => false,
-            default => true,
-        };
-    }
-
     public function unlock(KeyInterface $key): bool {
-        $mountPoint = $this->cryptFs->open($key->getFingerprint(), $this->getVault()->getCypherPoint());
+        $mountPoint = $this->cryptFs->open($key->getFingerprint(), $this->getPersonalVault()->getCypherPoint());
         if ($mountPoint) {
             $this->setStatus(VaultStatus::OPEN);
-            $this->getVault()->setMountPoint($mountPoint);
-            $this->getVault()->setLastMountTs(new \DateTime());
-            $this->em->persist($this->getVault());
+            $this->getPersonalVault()->setMountPoint($mountPoint);
+            $this->getPersonalVault()->setLastMountTs(new \DateTime());
+            $this->em->persist($this->getPersonalVault());
             $this->em->flush();
-            $this->dispatcher->dispatch(new VaultUnlockedEvent($this->getVault()), VaultUnlockedEvent::getName());
+            $this->dispatcher->dispatch(new VaultUnlockedEvent($this->getPersonalVault()), VaultUnlockedEvent::getName());
             return true;
         }
         return false;
@@ -97,16 +96,16 @@ final class Vault implements VaultInterface {
             return true;
         }
         $res = $this->cryptFs->close(
-            $this->getVault()->getCypherPoint(),
-            $this->getVault()->getMountPoint()
+            $this->getPersonalVault()->getCypherPoint(),
+            $this->getPersonalVault()->getMountPoint()
         );
         if ($res) {
             $this->setStatus(VaultStatus::ENCRYPTED);
-            $this->getVault()->setLastMountTs(null);
-            $this->getVault()->setMountPoint(null);
-            $this->em->persist($this->getVault());
+            $this->getPersonalVault()->setLastMountTs(null);
+            $this->getPersonalVault()->setMountPoint(null);
+            $this->em->persist($this->getPersonalVault());
             $this->em->flush();
-            $this->dispatcher->dispatch(new VaultLockedEvent($this->vault), VaultLockedEvent::getName());
+            $this->dispatcher->dispatch(new VaultLockedEvent($this->personalVault), VaultLockedEvent::getName());
         }
         return $res;
     }
@@ -131,47 +130,44 @@ final class Vault implements VaultInterface {
     }
 
     public function remove(): bool {
-        if (!$this->security->isGranted('ROLE_ADMIN')) {
-            throw new \UnexpectedValueException('Only admin can truncate folder');
-        }
         if ($this->lock()) {
-            $cypher = $this->getVault()->getCypherPoint();
+            $cypher = $this->getPersonalVault()->getCypherPoint();
             if (!$cypher) {
                 return false;
             }
             if (!$this->cryptFs->remove($cypher)) {
                 return false;
             }
-            $this->em->remove($this->getVault());
+            $this->em->remove($this->getPersonalVault());
             $this->em->flush();
-            $this->dispatcher->dispatch(new VaultRemovedEvent($this->getVault()), VaultRemovedEvent::getName());
+            $this->dispatcher->dispatch(new VaultRemovedEvent($this->getPersonalVault()), VaultRemovedEvent::getName());
         }
         return false;
     }
 
     public function getPlainFolder(): string {
         return match ($this->getStatus()) {
-            VaultStatus::OPEN => $this->basePath . '/' .$this->getVault()->getMountPoint(),
+            VaultStatus::OPEN => $this->basePath . '/' .$this->getPersonalVault()->getMountPoint(),
             VaultStatus::ENCRYPTED, VaultStatus::NONE, VaultStatus::NON_EXISTENT => throw new \InvalidArgumentException('Cant mount encrypted vault'),
         };
     }
 
     public function getEncryptedFolder(): string {
-       return $this->getVault()->getCypherPoint();
+       return $this->getPersonalVault()->getCypherPoint();
     }
 
     /**
      * @throws NoVaultException
      */
-    private function getVault(): PersonalVault {
-        if (!$this->vault) {
+    private function getPersonalVault(): PersonalVault {
+        if (!$this->personalVault) {
             throw new NoVaultException("No vault for user {$this->user?->getId()}");
         }
-        return $this->vault;
+        return $this->personalVault;
     }
 
     private function isMounted(): bool {
-        return (bool)$this->getVault()->getMountPoint();
+        return (bool)$this->getPersonalVault()->getMountPoint();
     }
 
     private function createEntity(): PersonalVault {
