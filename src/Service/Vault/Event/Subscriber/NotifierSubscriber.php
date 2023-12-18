@@ -14,6 +14,9 @@ use Symfony\Component\Notifier\Message\ChatMessage;
 
 class NotifierSubscriber implements EventSubscriberInterface {
 
+    /**
+     * @param array<class-string, list<string>> $recipients
+     */
     public function __construct(private ChatterInterface $chatter, private array $recipients) {
     }
     public static function getSubscribedEvents() {
@@ -64,6 +67,10 @@ class NotifierSubscriber implements EventSubscriberInterface {
         $this->chatter->send($message);
     }
 
+    /**
+     * @param VaultEvent $event
+     * @return string[]|null
+     */
     private function getRecipients(VaultEvent $event): ?array {
         if (array_key_exists($event::class, $this->recipients)) {
             return $this->recipients[$event::class];

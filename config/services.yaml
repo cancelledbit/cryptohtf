@@ -26,13 +26,13 @@ services:
             - '../src/Service/Vault/VaultBrowserService.php'
             - '../src/Entity/'
             - '../src/Kernel.php'
-    App\Service\Vault\GoCryptFs:
+    App\Service\Vault\FS\GoCryptFs:
         arguments:
             $basePath : '%env(VAULT_DIR)%'
     App\Service\Vault\Event\Subscriber\NotifierSubscriber:
         arguments:
             $recipients: '%env(json:NOTIFY_VAULT_RECIPIENTS)%'
-    App\Service\Vault\VaultHandler:
+    App\Service\Vault\VaultFactory:
         arguments:
             $basePath: '%env(VAULT_DIR)%'
             $durationOpen: '%env(VAULT_OPEN_SEC)%'

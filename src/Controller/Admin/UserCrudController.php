@@ -4,7 +4,8 @@ namespace App\Controller\Admin;
 
 use App\Entity\User;
 use App\Service\Vault\Exception\NoVaultException;
-use App\Service\Vault\VaultHandler;
+use App\Service\Vault\Vault;
+use App\Service\Vault\VaultFactory;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -21,16 +22,23 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
+use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class UserCrudController extends AbstractCrudController
 {
+    private ?FlashBagInterface $flashBag;
     public function __construct(
         private Security               $security,
-        private VaultHandler           $vault,
+        private VaultFactory           $vaultFactory,
         private EntityManagerInterface $em,
         private RequestStack           $stack,
     ) {
+        $session = $this->stack->getSession();
+        if (method_exists($session, 'getFlashBag')) {
+            $this->flashBag = $session->getFlashBag();
+        }
     }
 
     public static function getEntityFqcn(): string
@@ -75,12 +83,12 @@ class UserCrudController extends AbstractCrudController
             throw new \UnexpectedValueException('Unexpected entity type');
         }
 		try {
-			$this->vault->setUser($userToRemoveVault);
-			$this->vault->remove();
+            $vault = $this->vaultFactory->getByUser($userToRemoveVault);
+            $vault->remove();
 		} catch (NoVaultException) {
 
 		}
-        $this->stack->getSession()->getFlashBag()->add('success', "{$userToRemoveVault->getName()} хранилище очищено");
+        $this->flashBag?->add('success', "{$userToRemoveVault->getName()} хранилище очищено");
         return $this->redirect('/admin');
     }
 
@@ -90,15 +98,15 @@ class UserCrudController extends AbstractCrudController
             throw new \UnexpectedValueException('Unexpected entity type');
         }
 		try {
-			$this->vault->setUser($userToRemove);
-			$this->vault->remove();
+            $vault = $this->vaultFactory->getByUser($userToRemove);
+            $vault->remove();
 		} catch (NoVaultException) {
 
 		}
 
         $this->em->remove($userToRemove);
         $this->em->flush();
-        $this->stack->getSession()->getFlashBag()->add('success', "{$userToRemove->getName()} удален");
+        $this->flashBag?->add('success', "{$userToRemove->getName()} удален");
         return $this->redirect('/admin');
     }
 
@@ -108,7 +116,7 @@ class UserCrudController extends AbstractCrudController
             throw new \UnexpectedValueException('Unexpected entity type');
         }
         $this->security->login($user);
-        $this->stack->getSession()->getFlashBag()->add('success', "Вход под пользователем {$user->getName()}");
+        $this->flashBag?->add('success', "Вход под пользователем {$user->getName()}");
         return $this->redirectToRoute('app_vault');
     }
 

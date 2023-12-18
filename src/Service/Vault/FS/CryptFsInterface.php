@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service\Vault\Contract;
+namespace App\Service\Vault\FS;
 
 interface CryptFsInterface {
 	public function createStorage(string $pass, string $cryptDir): bool;
