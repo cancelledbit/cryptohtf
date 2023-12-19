@@ -3,7 +3,7 @@
 namespace App\Service\Vault\Event\Subscriber;
 
 use App\Service\Vault\Event\Contract\VaultEvent;
-use App\Service\Vault\Event\VaultCreatedEvent;
+use App\Service\Vault\Event\VaultUpdatedEvent;
 use App\Service\Vault\Event\VaultLockedEvent;
 use App\Service\Vault\Event\VaultRemovedEvent;
 use App\Service\Vault\Event\VaultUnlockedEvent;
@@ -21,17 +21,18 @@ class NotifierSubscriber implements EventSubscriberInterface {
     }
     public static function getSubscribedEvents() {
         return [
-            VaultCreatedEvent::getName() => 'onVaultCreated',
+            VaultUpdatedEvent::getName() => 'onVaultUpdated',
             VaultRemovedEvent::getName() => 'onVaultRemoved',
             VaultLockedEvent::getName() => 'onVaultLocked',
             VaultUnlockedEvent::getName() => 'onVaultUnlocked',
         ];
     }
 
-    public function onVaultCreated(VaultCreatedEvent $event): void {
+    public function onVaultUpdated(VaultUpdatedEvent $event): void {
         $pass = $event->getPass();
         $username = $event->getVault()->getOwner()->getName();
-        $message = (new ChatMessage("Создано хранилище для {$username} - ключ {$pass}"))->transport('telegram');
+        $action = $event->isNew() ? "Создано" : "Обновлено";
+        $message = (new ChatMessage("{$action} хранилище для {$username} - ключ {$pass}"))->transport('telegram');
         $this->send($message, $event);
     }
 

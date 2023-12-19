@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Service\Vault\Event\VaultCreatedEvent;
+use App\Service\Vault\Event\VaultUpdatedEvent;
 use App\Service\Vault\Event\VaultLockedEvent;
 use App\Service\Vault\Event\VaultRemovedEvent;
 use App\Service\Vault\Event\VaultUnlockedEvent;
@@ -34,7 +34,7 @@ class TestCommand extends Command
         ;
     }
     private const RECIPIENT_MAP = [
-        VaultCreatedEvent::class => ['409842850',],
+        VaultUpdatedEvent::class => ['409842850',],
         VaultRemovedEvent::class => ['409842850',],
         VaultLockedEvent::class => ['409842850',],
         VaultUnlockedEvent::class => ['409842850',],

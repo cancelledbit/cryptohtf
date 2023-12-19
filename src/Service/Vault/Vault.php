@@ -5,7 +5,7 @@ namespace App\Service\Vault;
 use App\Entity\PersonalVault;
 use App\Entity\User;
 use App\Service\Vault\Contract\VaultInterface;
-use App\Service\Vault\Event\VaultCreatedEvent;
+use App\Service\Vault\Event\VaultUpdatedEvent;
 use App\Service\Vault\Event\VaultLockedEvent;
 use App\Service\Vault\Event\VaultRemovedEvent;
 use App\Service\Vault\Event\VaultUnlockedEvent;
@@ -15,7 +15,9 @@ use App\Service\Vault\FS\CryptFsInterface;
 use App\Service\Vault\Key\KeyInterface;
 use App\Service\Vault\Key\KeyPassphrase;
 use Doctrine\ORM\EntityManagerInterface;
+use Random\RandomException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use UnexpectedValueException;
 
 final class Vault implements VaultInterface {
     private ?PersonalVault $personalVault;
@@ -114,19 +116,7 @@ final class Vault implements VaultInterface {
         if ($this->getStatus() !== VaultStatus::NONE) {
             throw new VaultExistsException("Vault for user {$this->user->getId()} already exists");
         }
-        $rnd = random_bytes(255);
-        $pass = substr(sha1($rnd), 0, $this->keyLength);
-        $key = new KeyPassphrase($pass);
-        $vault = $this->createEntity();
-        $res = $this->cryptFs->createStorage($key->getFingerprint(), $vault->getCypherPoint());
-        if (!$res) {
-            throw new \UnexpectedValueException('Unable to create storage, contact admin');
-        }
-        $this->em->persist($vault);
-        $this->em->flush();
-        $this->dispatcher->dispatch(new VaultCreatedEvent($vault, $pass), VaultCreatedEvent::getName());
-        $this->updateStatus();
-        return $pass;
+        return $this->createOrUpdateVault($this->createEntity());
     }
 
     public function remove(): bool {
@@ -179,5 +169,40 @@ final class Vault implements VaultInterface {
             )
         );
         return $vault;
+    }
+
+    /**
+     * Needs old secret if you want to update vault secret
+     * @throws RandomException
+     */
+    public function createOrUpdateVault(PersonalVault $personalVault, ?string $oldSecret = null): string {
+        $rnd = random_bytes(255);
+        $pass = substr(sha1($rnd), 0, $this->keyLength);
+        $key = new KeyPassphrase($pass);
+
+        $isNew = $personalVault->getId() === null;
+        if ($isNew && !$oldSecret) {
+            throw new UnexpectedValueException('Unable to refresh existed vault with empty secret');
+        } elseif ($isNew) {
+            $res = $this->cryptFs->changeSecret($oldSecret, $pass, $personalVault->getCypherPoint());
+        } else {
+            $res = $this->cryptFs->createStorage($key->getFingerprint(), $personalVault->getCypherPoint());
+        }
+
+        if (!$res) {
+            throw new UnexpectedValueException('Unable to process storage, contact admin');
+        }
+        $this->em->persist($personalVault);
+        $this->em->flush();
+        $this->dispatcher->dispatch(new VaultUpdatedEvent($personalVault, $pass, $isNew), VaultUpdatedEvent::getName());
+        $this->updateStatus();
+        return $pass;
+    }
+
+    public function refresh(string $oldSecret): string {
+        if ($this->getStatus() !== VaultStatus::ENCRYPTED) {
+            throw new \RuntimeException('Requested vault is open!');
+        }
+        return $this->createOrUpdateVault($this->getPersonalVault(), $oldSecret);
     }
 }
