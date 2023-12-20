@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
-use App\Service\Email\Registration;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -21,10 +20,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
 
-	#[ORM\Column(length: 180)]
+    #[ORM\Column(length: 180)]
     private ?string $firstName = null;
 
-	#[ORM\Column(length: 180)]
+    #[ORM\Column(length: 180)]
     private ?string $lastName = null;
 
     /** @var list<string> */
@@ -54,15 +53,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): static
     {
         $this->email = $email;
+
         return $this;
     }
 
-	public function setName(string $firstName, string $lastName): void {
+    public function setName(string $firstName, string $lastName): void
+    {
         $this->firstName = $firstName;
         $this->lastName = $lastName;
     }
 
-	public function getName(): string {
+    public function getName(): string
+    {
         return implode(' ', [$this->firstName, $this->lastName]);
     }
 
@@ -78,6 +80,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @see UserInterface
+     *
      * @return list<string>
      */
     public function getRoles(): array
@@ -91,6 +94,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @param list<string> $roles
+     *
      * @return $this
      */
     public function setRoles(array $roles): static
@@ -115,11 +119,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function setPlainPassword(string $password): void {
+    public function setPlainPassword(string $password): void
+    {
         $this->plainPassword = $password;
     }
 
-    public function getPlainPassword(): ?string {
+    public function getPlainPassword(): ?string
+    {
         return $this->plainPassword;
     }
 
@@ -128,7 +134,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function eraseCredentials(): void
     {
-         $this->plainPassword = null;
+        $this->plainPassword = null;
     }
 
     public function getPersonalVault(): ?PersonalVault

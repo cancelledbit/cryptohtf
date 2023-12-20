@@ -8,13 +8,16 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Exception\SessionNotFoundException;
 use Symfony\Component\HttpFoundation\RequestStack;
 
-final class CommonProcessor implements ProcessorInterface {
+final class CommonProcessor implements ProcessorInterface
+{
     public function __construct(
         private RequestStack $requestStack,
         private Security $security,
     ) {
     }
-    public function __invoke(LogRecord $record) {
+
+    public function __invoke(LogRecord $record)
+    {
         $userId = $this->security->getUser()?->getUserIdentifier();
         $record->extra['user'] = $userId;
         try {
@@ -29,6 +32,7 @@ final class CommonProcessor implements ProcessorInterface {
         $sessionId = substr($session->getId(), 0, 8) ?: '????????';
 
         $record->extra['token'] = $sessionId.'-'.substr(uniqid('', true), -8);
+
         return $record;
     }
 }

@@ -2,8 +2,6 @@
 
 namespace App\Service\Vault\Exception;
 
-use Exception;
-
-class VaultExistsException extends Exception {
-
+class VaultExistsException extends \Exception
+{
 }

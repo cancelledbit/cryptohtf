@@ -26,7 +26,6 @@ class CloseMountsCommand extends Command
 
     protected function configure(): void
     {
-
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -38,8 +37,8 @@ class CloseMountsCommand extends Command
         $criteria->where($expressionBuilder->neq('mountPoint', null));
         $criteria->andWhere($expressionBuilder->neq('mountPoint', ''));
 
-        $users= $this->em->getRepository(PersonalVault::class)->matching($criteria)->map(static fn(PersonalVault $vault): ?User => $vault->getOwner());
-        $users->filter(static fn(?User $u): bool => $u !== null);
+        $users = $this->em->getRepository(PersonalVault::class)->matching($criteria)->map(static fn (PersonalVault $vault): ?User => $vault->getOwner());
+        $users->filter(static fn (?User $u): bool => null !== $u);
         foreach ($users as $user) {
             $vault = $this->handler->getByUser($user);
             if ($vault->isExpired()) {

@@ -6,12 +6,14 @@ use App\Entity\User;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
-final class Registration {
-    public function __construct(private MailerInterface $mailer) {
-
+final class Registration
+{
+    public function __construct(private MailerInterface $mailer)
+    {
     }
 
-    public function send(User $user) {
+    public function send(User $user): void
+    {
         $email = new Email();
         $email->to($user->getEmail());
         $email->subject('Регистрация в vault');
@@ -22,6 +24,6 @@ final class Registration {
                 <b>Пароль:</b> {$user->getPlainPassword()}<br>
             HTML
         );
-      //  $this->mailer->send($email);
+        $this->mailer->send($email);
     }
 }

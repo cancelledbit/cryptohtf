@@ -8,7 +8,6 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -28,9 +27,9 @@ class NewUserCommand extends Command
     {
         $this
             ->addArgument('first_name', InputArgument::REQUIRED, 'Argument description')
-			->addArgument('last_name', InputArgument::REQUIRED, 'Argument description')
-			->addArgument('email', InputArgument::REQUIRED, 'Argument description')
-			->addArgument('role', InputArgument::OPTIONAL, default: 'ROLE_USER')
+            ->addArgument('last_name', InputArgument::REQUIRED, 'Argument description')
+            ->addArgument('email', InputArgument::REQUIRED, 'Argument description')
+            ->addArgument('role', InputArgument::OPTIONAL, default: 'ROLE_USER')
         ;
     }
 
@@ -38,27 +37,27 @@ class NewUserCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $firstName = $input->getArgument('first_name');
-		$lastName = $input->getArgument('last_name');
-		$email = $input->getArgument('email');
-		$role = $input->getArgument('role');
-		if (!$firstName || !$lastName || !$email) {
-			return Command::FAILURE;
-		}
+        $lastName = $input->getArgument('last_name');
+        $email = $input->getArgument('email');
+        $role = $input->getArgument('role');
+        if (!$firstName || !$lastName || !$email) {
+            return Command::FAILURE;
+        }
 
-		$users = $this->repository->findBy(['email' => $email]);
-		if (!count($users)) {
-			$user = new User();
-		} else {
-			$user = reset($users);
-		}
+        $users = $this->repository->findBy(['email' => $email]);
+        if (!count($users)) {
+            $user = new User();
+        } else {
+            $user = reset($users);
+        }
 
-		$user->setEmail($email);
-		$user->setName($firstName, $lastName);
-		$user->setRoles([$role]);
-		$pwd = substr(md5(random_bytes(8)), 0,7);
-		$pwdHash = $this->hasher->hashPassword($user, $pwd);
+        $user->setEmail($email);
+        $user->setName($firstName, $lastName);
+        $user->setRoles([$role]);
+        $pwd = substr(md5(random_bytes(8)), 0, 7);
+        $pwdHash = $this->hasher->hashPassword($user, $pwd);
         $user->setPlainPassword($pwd);
-		$this->repository->upgradePassword($user, $pwdHash);
+        $this->repository->upgradePassword($user, $pwdHash);
         $io->success("Created {$email} {$pwd}");
 
         return Command::SUCCESS;
