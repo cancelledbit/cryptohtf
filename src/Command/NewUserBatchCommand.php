@@ -41,8 +41,8 @@ class NewUserBatchCommand extends Command
             $args = new ArrayInput([
                 'command' => 'app:new-user',
                 'first_name' => $userParts[0],
-                'last_name' => $userParts[0],
-                'email' => $userParts[0],
+                'last_name' => $userParts[1],
+                'email' => $userParts[2],
             ]);
             $this->getApplication()->doRun($args, $output);
         }
