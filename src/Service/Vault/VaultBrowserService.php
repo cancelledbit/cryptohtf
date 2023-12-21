@@ -27,6 +27,9 @@ readonly class VaultBrowserService implements CustomConfServiceInterface
         return [
             'dir' => $this->vault->getPlainFolder(),
             'show_file_count' => true,
+            'upload' => [
+                'replace_dots_in_filenames' => false,
+            ],
         ];
     }
 }
