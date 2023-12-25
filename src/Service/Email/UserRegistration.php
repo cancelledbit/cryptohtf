@@ -6,7 +6,7 @@ use App\Entity\User;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
-final class Registration
+final class UserRegistration
 {
     public function __construct(private MailerInterface $mailer)
     {

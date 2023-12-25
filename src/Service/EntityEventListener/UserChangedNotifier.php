@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Service\EventListener;
+namespace App\Service\EntityEventListener;
 
 use App\Entity\User;
-use App\Service\Email\Registration;
+use App\Service\Email\UserRegistration;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Event\PostPersistEventArgs;
 use Doctrine\ORM\Events;
@@ -11,7 +11,7 @@ use Doctrine\ORM\Events;
 #[AsEntityListener(event: Events::postPersist, method: 'sendRegister', entity: User::class)]
 class UserChangedNotifier
 {
-    public function __construct(private Registration $registration)
+    public function __construct(private UserRegistration $registration)
     {
     }
 
